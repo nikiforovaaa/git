@@ -10,7 +10,7 @@
         <!ELEMENT name (#PCDATA)>
         <!ELEMENT printyear (#PCDATA)>
         <!ELEMENT genre EMPTY>
-        <!ELEMENT takedate EMPTY>
+        <!ELEMENT takedate EMPTY> 
         <!ATTLIST reader
                 firstname CDATA #IMPLIED
                 secondname CDATA #REQUIRED>
