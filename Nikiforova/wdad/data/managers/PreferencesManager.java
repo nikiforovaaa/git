@@ -1,6 +1,8 @@
 package Rpis61.Nikiforova.wdad.data.managers;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -9,14 +11,19 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 
 public class PreferencesManager {
 
     private static PreferencesManager instance;
     public static final String XML_PATH = "src\\Rpis61\\Nikiforova\\wdad\\resources\\configuration\\appconfig.xml";
     private Document document;
+    private Properties properties;
+    private XPath path;
 
     private PreferencesManager() {
         try {
@@ -39,7 +46,7 @@ public class PreferencesManager {
 
     private void saveXML() {
         try {
-            TransformerFactory.newInstance().newTransformer().transform(new DOMSource(document),new StreamResult(new File(XML_PATH)));
+            TransformerFactory.newInstance().newTransformer().transform(new DOMSource(document), new StreamResult(new File(XML_PATH)));
         } catch (TransformerException e) {
             e.printStackTrace();
         }
@@ -99,4 +106,46 @@ public class PreferencesManager {
         return document.getElementsByTagName("classprovider").item(0).getTextContent();
     }
 
+    public void setProperty(String key, String value) {
+        try {
+            document.getElementsByTagName(path.evaluate(key, document)).item(0).setTextContent(value);
+        } catch (XPathExpressionException e) {
+            e.printStackTrace();
+        }
+        saveXML();
+        properties.setProperty(key, value);
+    }
+
+    public String getProperty(String key) {
+        return properties.getProperty(key);
+    }
+
+    public void setProperties(Properties prop) {
+        prop.stringPropertyNames().forEach(property -> setProperty(property, prop.getProperty(property)));
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+
+    public void addBindedObject(String name, String className) {
+        Element element = document.createElement("bindedobject");
+        element.setAttribute("name", name);
+        element.setAttribute("class", className);
+        document.getElementsByTagName("server").item(0).appendChild(element);
+        saveXML();
+    }
+
+
+    public void removeBindedObject(String name) {
+        NodeList nodeList = document.getElementsByTagName("bindedobject");
+        Element element;
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            element = (Element) nodeList.item(i);
+            if (element.getAttribute("name").equals(name)) {
+                element.getParentNode().removeChild(element);
+            }
+        }
+    }
 }
